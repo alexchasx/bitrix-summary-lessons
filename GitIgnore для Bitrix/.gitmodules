@@ -1,0 +1,3 @@
+[submodule "bitrix"]
+	path = bitrix
+	url = <ссылка на репозиторий подмодуля>

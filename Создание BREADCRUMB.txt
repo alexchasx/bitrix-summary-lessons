@@ -1,0 +1,136 @@
+--------------------------
+СОЗДАТЬ НАВИГАЦИОННУЮ ЦЕПОЧКУ
+
+https://dev.1c-bitrix.ru/learning/course/index.php?COURSE_ID=43&LESSON_ID=3398&LESSON_PATH=3913.4564.4949.4927.3398
+https://dev.1c-bitrix.ru/api_help/main/reference/cmain/shownavchain.php
+
+Сайт
+ Изменить страницу
+  Служебные
+   Навигация
+    Навигационная цепочка
+     Свойства (или параметры из "шестеренки") ?
+      меняем название шаблона (пример: breadcrumb) ?
+В файлах
+ подставляем свою верстку в сгенерир. шаблон
+  из сгенерир. шаблона берем код (вызов компонента) и копир. в шаблон сайта
+  ($APPLICATION->IncludeComponent("bitrix:menu", ...)
+
+-----
+Шаблоны для хл.крош.:
+/bitrix/components/bitrix/breadcrumb/templates/<название шаблона>/
+
+-----
+УБРАТЬ ССЫЛКУ НА РАЗДЕЛ: 
+	удалить название раздела из поля "Заголовок".
+
+-----
+ДОБАВИТЬ ДОПОЛНИТЕЛЬНЫЕ ПУНКТЫ:
+
+<?php
+ //---Первым параметром функции AddChainItem() задается название, 
+ //---которое будет показано в навигационной цепочке, вторым параметром задается 
+ //---ссылка для перехода.
+ //---Значения параметров могут быть как статическими, так и динамическими.
+ //---в приведенном примере название раздела задано статической величиной, а 
+ //---ссылка формируется динамически.   
+ $APPLICATION->AddChainItem("Детальная информация о товаре", "catalog.php?BID=".$arIBlock["ID"]."&ID=".$arSection["ID"]);
+
+ //---В приведенном ниже примере обе величины формируются динамически.
+ //---В качестве названия подставляется текущее значение раздела каталога. 
+ $APPLICATION->AddChainItem($arSection["NAME"], "catalog.php?BID=".$arIBlock["ID"]."&ID=".$arSection["ID"]); 
+ ?>
+
+-----
+Выводить в цепочку НАЗВАНИЕ ТЕКУЩ.СТРАНИЦЫ:
+	прописать в файле footer.php:
+
+<?php $APPLICATION->AddChainItem($APPLICATION->GetTitle());?>
+
+-----
+Пункты цепочки БЕЗ ССЫЛКИ:
+	добавить в шаблон показа навигационной цепочки:
+
+ if($arResult[$index]["LINK"] <> "")
+   $strReturn .= '<li><a href="'.$arResult[$index]["LINK"].'" title="'.$title.'">'.$title.'</a></li>';
+  else 
+   $strReturn .= '<li>'.$title.'</li>';
+
+-----
+Показ цепочки: 
+<?php
+	$APPLICATION->ShowNavChain();
+?>
+
+-----
+ОТКЛЮЧИТЬ хлебные крошки(для всех страниц):
+
+Админ-панель
+ Настройки
+  Настройки модулей
+   Управление структурой
+    Настройки для сайтов
+    создать свойство для страниц:
+Тип: not_show_nav_chain
+Название: "Не показывать навигационную цепочку".
+
+ОТКЛЮЧИТЬ хлебные крошки(для определ. страниц):
+
+Сайт
+ Перейти на нужн.страницу
+  Изменить раздел
+   Напротив соответ-го пункта поставить: Y
+Или в коде странице:
+	$APPLICATION->SetPageProperty("NOT_SHOW_NAV_CHAIN", "Y");
+
+------
+Шаблон хл.крошек для ОТДЕЛЬНОГО РАЗДЕЛА сайта:
+
+Задается с пом. ShowNavChain() 
+ в файле .section.php:
+$sChainTemplate = "/bitrix/templates/demo/chain_template.php"
+
+------
+Если путь к шаблону цепочки не определён, то проверяется существование файла:
+/bitrix/templates/ID текущего шаблона сайта/chain_template.php
+Если выше не нашел, то:
+/bitrix/templates/.default/chain_template.php
+
+------
+$sChainProlog - HTML код выводимый перед навигационной цепочкой
+$sChainBody   - HTML код определяющий внешний вид одного пункта навигационной цепочки
+$sChainEpilog - HTML код выводимый после навигационной цепочки
+$strChain     - HTML код всей навигационной цепочки собранный к моменту подключения шаблона
+
+$TITLE - заголовок очередного пункта навигационной цепочки
+$LINK - ссылка на очередном пункте навигационной цепочки
+$arCHAIN - копия массива элементов навигационной цепочки
+$arCHAIN_LINK - ссылка на массив элементов навигационной цепочки
+$ITEM_COUNT - количество элементов массива навигационной цепочки
+$ITEM_INDEX - порядковый номер очередного пункта навигационной цепочки
+
+------
+ПРИМЕР ШАБЛОНА
+
+<?
+if(!defined("B_PROLOG_INCLUDED") || B_PROLOG_INCLUDED!==true)die();
+
+if(empty($arResult))
+  return "";
+
+$strReturn = '<ul class="breadcrumb-navigation">';
+for($index = 0, $itemSize = count($arResult); $index < $itemSize; $index++)
+{
+   if($index > 0)
+          $strReturn .= '<li><span>&nbsp;&gt;&nbsp;</span></li>';
+   $title = htmlspecialcharsex($arResult[$index]["TITLE"]);
+   if($arResult[$index]["LINK"] <> "")
+          $strReturn .= '<li><a href="'.$arResult[$index]["LINK"].'" title="'.$title.'">'.$title.'</a></li>';
+   else
+          $strReturn .= '<li>'.$title.'</li>';
+}
+$strReturn .= '</ul>';
+return $strReturn;
+?>
+
+------

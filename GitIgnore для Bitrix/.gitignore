@@ -1,0 +1,83 @@
+### общие исключения
+# IDE
+.idea/
+
+# dev backups
+*bak20*
+*bak-20*
+
+# cache
+.sass-cache/
+
+## если гит выше корня сайта
+/public/upload/
+/public/.Trash*/
+/public/yml-catalogs/*.yml
+/public/robots.txt
+/public/sitemap*.xml
+/public/local/vendor/
+/public/local/php_interface/include/env_vars.php
+/public/pathLog.txt
+
+## если гит в корне сайта
+/upload/
+/.Trash*/
+/yml-catalogs/*.yml
+/robots.txt
+/sitemap*.xml
+/local/vendor/
+/local/php_interface/include/env_vars.php
+/pathLog.txt
+
+### Битрикс
+## если гит в корне сайта
+
+# configs
+/bitrix/php_interface/dbconn.php
+/bitrix/.settings.php
+
+# backups
+/bitrix/backup
+!/bitrix/backup/index.php
+
+# logs
+/bitrix/*.log
+/bitrix/modules/updater.log
+/bitrix/modules/updater_partner.log
+
+# cache 
+/bitrix/cache
+/bitrix/managed_cache
+/bitrix/stack_cache
+/bitrix/html_pages
+
+### exports
+/bitrix/catalog_export
+
+## если гит выше корня сайта
+# configs
+/public/bitrix/php_interface/dbconn.php
+/public/bitrix/.settings.php
+
+# backups
+/public/bitrix/backup
+!/public/bitrix/backup/index.php
+
+# logs
+/public/bitrix/*.log
+/public/bitrix/modules/updater.log
+/public/bitrix/modules/updater_partner.log
+
+# cache 
+/public/bitrix/cache
+/public/bitrix/managed_cache
+/public/bitrix/stack_cache
+/public/bitrix/html_pages
+
+### exports
+/public/bitrix/catalog_export
+
+### исключения для конкретного проекта
+/bitrix/modules/iarga.exchange
+!/bitrix/modules/iarga.exchange/install
+!/bitrix/modules/iarga.exchange/lang
