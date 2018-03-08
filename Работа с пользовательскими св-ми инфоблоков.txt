@@ -1,0 +1,82 @@
+
+https://dev.1c-bitrix.ru/learning/course/index.php?COURSE_ID=43&LESSON_ID=2832&LESSON_PATH=3913.4610.4797.2832
+
+Задача 1: 
+Получить значения всех свойств элемента, зная его ID.
+
+<? 
+	$db_props = CIBlockElement::GetProperty(IBLOCK_ID, 
+		ELEMENT_ID, "sort", "asc", array());
+	$PROPS = array();
+
+	while($ar_props = $db_props->Fetch())
+	{
+		$PROPS[$ar_props['CODE']] = $ar_props['VALUE'];	
+	}
+?>
+----------------------------------------
+Задача 2: 
+Получить свойства элементов, используя метод CIBlockElement::GetList
+
+<? 
+	$arSelect = array("ID", "NAME", "PROPERTY_prop_code_1", 
+		"PROPERTY_prop_code_2");
+
+	$res = CIBlockElement::GetList(array(), array(), false, 
+		array(), $arSelect);
+?>
+Дальше использовать цикл и получить свойства с символьными кодами prop_code_1 и prop_code_2.
+----------------------------------------
+Задача 3: 
+Добавить свойство типа TEXT/html для элемента.
+
+Если свойство не множественное:
+
+<? 
+	$element = new CIBlockElement;
+	$PROP = array();
+	$PROP['символьный код свойства']['VALUE']['TYPE'] = 'text'; // или html
+	$PROP['символьный код свойства']['VALUE']['TEXT'] = 'значение, которое нужно забить';
+	$arLoadArray = array(
+	  "IBLOCK_ID"      => IBLOCK_ID,
+	  "PROPERTY_VALUES"=> $PROP,
+	  "NAME"           => "Название элемента"
+	  );
+	$element->Add($arLoadArray);
+?>
+
+Если свойство множественное:
+
+<? 
+	// В $ITEMS хранятся значения множественного свойства, которое нужно забить
+	foreach($ITEMS as $item)
+	{
+	    $VALUES[]['VALUE'] = array(
+	     'TYPE' => 'text', // или html
+           'TEXT' => $item,
+           );
+	}
+
+	$element = new CIBlockElement;
+	$PROPS = array();
+	$PROPS['символьный код свойства'] = $VALUES;
+
+	$arLoadArray = array(
+	  "IBLOCK_ID"      => IBLOCK_ID,
+	  "PROPERTY_VALUES"=> $PROPS,
+	  "NAME"           => "Название элемента"
+	  );
+
+	$element->Add($arLoadArray);
+?>
+----------------------------------------
+
+----------------------------------------
+
+----------------------------------------
+
+----------------------------------------
+
+----------------------------------------
+
+----------------------------------------
