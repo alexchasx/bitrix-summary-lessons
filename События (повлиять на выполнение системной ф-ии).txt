@@ -1,0 +1,92 @@
+
+У каждого модуля свой набор событий (см. документацию)
+
+Задача: реализовать вывод 3-х последних посещенных пользователем страниц.
+
+Обработчиком события OnEndBufferContent (вызывается в самый последний момент перед отображением страницы) будет собирать данные.
+Для хранения данных используем Инфоблок.
+Для вывода - свой компонент.
+
+Админ-панель
+ Инфоблоки
+  Типы инфоблоков
+   Добавить новый тип
+   Добавить инфоблок
+Символьный код - ID типа инфоблока(?)
+Удаляем значения полей для URL
+Исключаем из поиска
+
+Контент
+ Просмотренные страницы
+  Просмотренные страницы (нажать на шестеренку)
+   Настраиваем поля и форму редактирования элементов
+
+Для размещения своей логики 
+ в папке local(?) создаем папку php_interface 
+  с файлом init.php
+
+local/php_interface/init.php:
+--------------------------------------
+<?php
+
+use \Bitrix\Main;
+
+$eventManager = Main\EventManager::getInstance();
+$eventManager->addEventHandlerCompatible('main', 'OnEndBufferContent', array(
+    "PagesViewed",
+    "collection"
+));
+
+class PagesViewed
+{
+    function Collection($content)
+    {
+        $iblockId = 4;
+
+        $urlString = Main\Application::getInstance()->getContext()->getRequest()->getRequestUri();
+        $url = new Main\Web\Uri($urlString);
+
+        if (Main\Loader::includeModule('iblock')) {
+            $arFilter = array(
+                'IBLOCK_ID' => $iblockId,
+                'PROPERTY_USER' => CUser::GetSessionHash(),
+                'PROPERTY_URL' => $url->getPath()
+            );
+
+            if (!CIBlockElement::GetList(false, $arFilter, array(), false, false)) {
+                $el = new CIBlockElement();
+
+                $arLoadProductArray = array(
+                    'MODIFIED_BY' => CUser::GetSessionHash(),
+                    'IBLOCK_SECTION_ID' => false,
+                    'IBLOCK_ID' => $iblockId,
+                    'PROPERTY_VALUES' => array(
+                        'url' => $url->getPath(),
+                        'user' => CUser::GetSessionHash()
+                    ),
+                    'NAME' => $APPLICATION->GetTitle()
+                );
+
+                $el->Add($arLoadProductArray);
+
+                // Очистка старых записей
+                $arSelect = array('ID');
+                $arFilter = array(
+                    'IBLOCK_ID' => $iblockId,
+                    'PROPERTY_USER' => CUser::GEtSessionHash()
+                );
+
+                $res = CIBlockElement::GetList(array('created' => 'desc'), $arFilter, false, $arSelect);
+
+                $i = 0;
+                while ($arFields = $res->GetNext()) {
+                    $i++;
+                    if ($i > 3) {
+                        CIBlockElement::Delete($arFields['ID']);
+                    }
+                }
+            }
+        }
+    }
+}
+--------------------------------------
