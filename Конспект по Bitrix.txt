@@ -59,34 +59,6 @@ mbstring.func_overload:
 Значения св-в распростр-ся на нижестоящие разделы по принципу наследования.
 
 --------------------------
-ИНТЕГРАЦИЯ ШАБЛОНА.
-
-Админка
- -> Настройки
- -> Настройки продукта
- -> Сайты
- -> Шаблоны сайтов
-(создать шаблон, добавить в контекстную область #WORK_AREA#)
-
-Расположение: /local/
-Или: /bitrix/templates/
-(перед внесением изменений сделать резервную копию директории)
-
-1) Разбить на header.php (плюс хлебн.крошки и заголовок стр.), footer.php
-2) Контекстную часть в корень сайта index.php
-3) Прописать в путях: <?=SITE_TEMPLATE_PATH?>/
-
-<?php $bIsMainPage = $APPLICATION->GetCurPage(false) == SITE_DIR;?> (текущ.стр. - главная?)
-<?php $APPLICATION->ShowHead();?> (вместо мета-тегов)
-<?php $APPLICATION->ShowTitle();?>
-<?php $APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/common-style.css');?>
-
-для IE:
-<script src="<?=CUtil::GetAdditionalFileURL((SITE_TEMPLATE_PATH.'/js/ie.js')?>"></script>
-
-В настройках сайта включить шаблон.
-
---------------------------
 СОЗДАНИЕ РЕДАКТИРУЕМЫХ ОБЛАСТЕЙ:
 
 Вместо области:
