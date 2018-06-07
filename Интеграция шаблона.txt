@@ -1,4 +1,4 @@
-По видиоурокам:
+ По видиоурокам:
 https://www.youtube.com/watch?v=27t1QWuu06Q&list=PLY4rE9dstrJyqAWUVlT7PLGjdmPEwhfg6&index=2
 --------------------------
 ИНТЕГРАЦИЯ ШАБЛОНА.
@@ -24,6 +24,8 @@ https://www.youtube.com/watch?v=27t1QWuu06Q&list=PLY4rE9dstrJyqAWUVlT7PLGjdmPEwh
   Прописать в путях: <?=SITE_TEMPLATE_PATH?>/
 
 <?php $bIsMainPage = $APPLICATION->GetCurPage(false) == SITE_DIR;?> (текущ.стр. - главная?)
+if (bIsMainPage) { хлебные крошки }
+
 <?php $APPLICATION->ShowHead();?> (вместо мета-тегов)
 <?php $APPLICATION->ShowTitle();?>
 <?php $APPLICATION->SetAdditionalCSS(SITE_TEMPLATE_PATH.'/css/common-style.css');?>
@@ -33,10 +35,31 @@ https://www.youtube.com/watch?v=27t1QWuu06Q&list=PLY4rE9dstrJyqAWUVlT7PLGjdmPEwh
 
 В настройках сайта включить шаблон.
 
-СТРУКТУРА /bitrix/templates/<ID_шаблона>:
-style.css           - стили визуальн. редак-ра
-template_styles.css - стили шаблона
+в путях к картинках прописать: SITE_TEMPLATE_PATH . '/images/image/png'
 
+--------------------------
+Редактируемые области: телефоны, адреса и др.
+Файлы -> в папке "/include/"
+В коде: <?APPLICATION->IncludeFile(
+	SITE_DIR.
+)
+--------------------------
+Базовая настройка сайта:
+Настроки - Настройки модулей - Главный модуль
+Указать: Название сайта, Оптимизация CSS (убрать галочки на время разработки)
+--------------------------
+ПРОВЕРИТЬ В b_iblock_section есть ли раздела по сайтам (и по нашему), если нет - создавать вручную(?)
+--------------------------
+Добавить пункт в меню (или редак.):
+Сайт - Создать раздел - убрать гал. "перейти к редак...."
+- Далее - Вставить перед пунктом ...
+--------------------------
+Создать страницу(раздел в меню):
+Админ -> Контент - Файлы и папки - Создать - ... - Редактирование страницы
+--------------------------
+Донастройка меню: режим правки - "шестеренка" - Дополн.настройки: уровень вложенности меню...
+--------------------------
+Типы меню настраиваются в: Админ-Настройки-Настройки модуля-Управление структурой-Типы меню
 --------------------------
 ПОДКЛЮЧИТЬ МЕНЮ
 https://www.youtube.com/watch?v=PkOEo1OHgQI&list=PLY4rE9dstrJyqAWUVlT7PLGjdmPEwhfg6&index=3
