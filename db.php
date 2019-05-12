@@ -1,109 +1,163 @@
 <?php
-// пример запуска:                     http://int.samsonopt.ru/db.php?dev
-// по последним цифрам IP и имени БД:  http://int.samsonopt.ru/db.php?30=samson_db
+// примеры запуска:                     http://int.samsonopt.ru/db.php?dev
+// по последним цифрам IP и имени БД:   http://int.samsonopt.ru/db.php?30=samson_db
 
-if (!$_GET) {
-	exit('Пустой запрос');
-}
+class FileDbConn
+{
+    const FRAGMENT_IP = '192.168.10.';
+    const FRAGMENT_NAME_DB = 'samson_';
+    const ERROR_SEARCH_PARAMETERS = 'Ошибка поиска параметров в файле ';
+    const ERROR_EMPTY_QUERY = 'Пустой запрос';
+    const MESSAGE_SUCCESS = 'Параметры подключения к БД изменены.<br><br>';
 
-// Стилизация вывода
-$styleError = $styleSuccess = '';
-// $styleError = '<style type="text/css">
-//    body {
-//     font-size: 110%;
-//     font-family: Verdana, Arial, Helvetica, sans-serif;
-//     color: red;
-//     text-align: center;
-//    }
-//   </style>';
-// $styleSuccess = str_replace('red', 'green', $styleError);
+    private $arIPDefault = [
+        'dev' => '10',
+        'test' => '20',
+        'etalon' => '30',
+    ];
+    private $arFiles = [
+        'php_interface/dbconn',
+        '.settings',
+    ];
+    private $styleError = '<style type="text/css">
+        body {
+            font-size: 120%;
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            color: red;
+        }
+        </style>';
+    private $styleSuccess = '';
+    private $dir = '';
+    private $errorMessage = '';
+    private $fileCurrent = '';
+    private $link = '';
 
-$queryKey = array_keys($_GET)[0];
-$queryValue = $_GET[$queryKey];
-$fragmentHost = '192.168.10.';
-
-if (is_string($queryKey)) {
-	switch ($queryKey) {
-		case 'dev':
-			$dbHost = 'localhost_dev';
-			$dbName = 'samson_dev';
-			break;
-		case 'test':
-			$dbHost = 'localhost_test';
-			$dbName = 'samson_test';
-			break;
-		case 'etalon':
-			$dbHost = 'localhost_etalon';
-			$dbName = 'samson_test';
-			break;
-		case 'localhost':
-			$dbHost = 'localhost';
-			$dbName = $queryValue;
-			break;
-		default:
-			exit($styleError . 'Неизвестна БД для ' . $queryKey);
-			break;
-	}	
-} elseif (is_int($queryKey) && preg_match('/^[\w\d]+$/', $queryValue)) {
-	$dbHost = $fragmentHost . $queryKey;
-	$dbName = $queryValue;
-} else {
-	exit($styleError . 'Ошибка. Неверно: <br>$DBHost = ' . $fragmentHost . $queryKey 
-		. '<br>$DBName = ' . $queryValue);
-}
-
-$fileDbConn = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/dbconn_extra.php';
-if (!file_exists($fileDbConn)) {
-    $fileDbConn = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/php_interface/dbconn.php';
-}
-$arDbConn = file($fileDbConn);
-$resultString = 'Новые параметры подключения: <br>';
-$searchSuccess = 0;
-array_walk($arDbConn, function(&$item) use ($dbHost, $dbName, &$resultString, &$searchSuccess) {
-    if(preg_match('/^\$DBHost\s=\s[\'\"][\w\.\d]+[\'\"];\s*$/', $item)) {
-        $item = '$DBHost = \'' . $dbHost . '\';' . PHP_EOL;
-        $resultString .= $item . '<br>';
-        $searchSuccess++;
-    } elseif (preg_match('/^\$DBName\s=\s[\'\"][\w\d]+[\'\"];\s*$/', $item)) {
-        $item = '$DBName = \'' . $dbName . '\';' . PHP_EOL;
-        $resultString .= $item . '<br>';
-        $searchSuccess++;
+    public function __construct()
+    {
+        if (!$_GET) {
+            exit($this->styleError . self::ERROR_EMPTY_QUERY);
+        }
+        $this->dir = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/';
+        $this->errorMessage .= $this->styleError;
+        $this->styleSuccess = str_replace('red', 'green', $this->styleError);
     }
-});
-unset($item);
-if ($searchSuccess < 2) {
-    echo $styleError . 'Ошибка поиска подключения к БД в файле ' . $fileDbConn;
-    exit;
-}
-if (false === file_put_contents($fileDbConn, $arDbConn)) {
-	echo $styleError . error_get_last()['message'];
-	exit;
-}
 
-$fileSettings = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/.settings_extra.php';
-if (!file_exists($fileSettings)) {
-    $fileSettings = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/.settings.php';
-}
-$arSettings = file($fileSettings);
-$searchSuccess = 0;
-array_walk($arSettings, function(&$item) use ($dbHost, $dbName, &$searchSuccess) {
-    if(preg_match('/^\s*[\'\"]host[\'\"]\s=>\s[\'\"][\w\.\d]+[\'\"],\s*$/', $item)) {
-        $item = '           \'host\' => \'' . $dbHost . '\',' . PHP_EOL;
-        $searchSuccess++;
-    } elseif (preg_match('/^\s*[\'\"]database[\'\"]\s=>\s[\'\"][\w\.\d]+[\'\"],\s*$/', $item)) {
-        $item = '           \'database\' => \'' . $dbName . '\',' . PHP_EOL;
-        $searchSuccess++;
+    /**
+     * @param string $defaultName
+     *
+     * @return string
+     */
+    protected function getContent(string $defaultName): string
+    {
+        $this->fileCurrent = $this->dir . $defaultName .'_extra.php';
+        if (!file_exists($this->fileCurrent)) {
+            $this->fileCurrent =  $this->dir . $defaultName . '.php';
+        }
+        $this->setLink($defaultName, $this->fileCurrent);
+
+        return file_get_contents($this->fileCurrent);
     }
-});
-unset($item);
-if ($searchSuccess < 2) {
-    echo $styleError . 'Ошибка поиска подключения к БД в файле ' . $fileSettings;
-    exit;
-}
-if (false === file_put_contents($fileSettings, $arSettings)) {
-	echo $styleError . error_get_last()['message'];
-	exit;
+
+    /**
+     * @param        $queryKey
+     * @param string $queryValue
+     *
+     * @return array
+     */
+    protected function setParamConnect($queryKey, string $queryValue = ''): array
+    {
+        if (isset($this->arIPDefault[$queryKey])) {
+            $dbHost = self::FRAGMENT_IP . $this->arIPDefault[$queryKey];
+            $dbName = self::FRAGMENT_NAME_DB . $queryKey;
+        } elseif (is_int($queryKey) && preg_match('/^[\w\d]+$/', $queryValue)) {
+            $dbHost = self::FRAGMENT_IP . $queryKey;
+            $dbName = $queryValue;
+        } else {
+            $this->errorMessage .= 'Ошибка. Неверно:<br>$DBHost = ' . self::FRAGMENT_IP . $queryKey
+                . '<br>$DBName = ' . $queryValue;
+
+            return [];
+        }
+        return [
+            'host' => $dbHost,
+            'database' => $dbName,
+        ];
+    }
+
+    /**
+     * @param string $fileDefault
+     * @param string $fileCurrent
+     */
+    protected function setLink(string $fileDefault, string $fileCurrent)
+    {
+        $this->link .= '<a href="/db.php?watch=' . $fileDefault . '">Посмотреть файл "' . $fileCurrent . '"</a><br>';
+    }
+
+    /**
+     * @param string $contentFile
+     * @param array  $arParams
+     *
+     * @return bool
+     */
+    public function writeFile(string $contentFile, array $arParams): bool
+    {
+        if (strpos($this->fileCurrent, '.settings') !== false) {
+            $patternHost = '/[\'\"]host[\'\"]\s*=>\s*[\'\"][\w\.\d]+[\'\"],/';
+            $patternDbName = '/[\'\"]database[\'\"]\s=>\s[\'\"][\w\.\d]+[\'\"],/';
+            $replaceHost = '\'host\' => \'' . $arParams['host'] . '\',';
+            $replaceDatabase = '\'database\' => \'' . $arParams['database'] . '\',';
+        } else {
+            $patternHost = '/\$DBHost\s=\s[\'\"][\w\.\d]+[\'\"];/';
+            $patternDbName = '/\$DBName\s=\s[\'\"][\w\d]+[\'\"];/';
+            $replaceHost = '$DBHost = \'' . $arParams['host'] . '\';';
+            $replaceDatabase = '$DBName = \'' . $arParams['database'] . '\';';
+        }
+        if(preg_match($patternHost, $contentFile, $arDbHosts)
+            && preg_match($patternDbName, $contentFile, $arDbNames)
+        ) {
+            $resultContent = preg_replace(
+                [
+                    $patternHost,
+                    $patternDbName,
+                ], [
+                    $replaceHost,
+                    $replaceDatabase,
+                ],
+                $contentFile,
+                1
+            );
+        } else {
+            $this->errorMessage .= self::ERROR_SEARCH_PARAMETERS . $this->fileCurrent;
+
+            return false;
+        }
+
+        return (bool)file_put_contents($this->fileCurrent, $resultContent);
+    }
+
+    /**
+     * @return string
+     */
+    public function changeFiles(): string
+    {
+        $queryKey = array_keys($_GET)[0];
+        $queryValue = $_GET[$queryKey];
+
+        if ($queryKey == 'watch') {
+            return htmlspecialchars($this->getContent($queryValue));
+        }
+        $arParams = $this->setParamConnect($queryKey, $queryValue);
+        if (empty($arParams)) {
+            return $this->errorMessage;
+        }
+        foreach ($this->arFiles as $fileName) {
+            if (false == $this->writeFile($this->getContent($fileName), $arParams)) {
+                return $this->errorMessage;
+            }
+        }
+
+        return $this->styleSuccess . self::MESSAGE_SUCCESS . $this->link;
+    }
 }
 
-echo $styleSuccess . $resultString;
-exit;
+echo '<pre>', (new FileDbConn())->changeFiles(), '</pre>';
