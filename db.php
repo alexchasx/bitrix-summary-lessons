@@ -5,15 +5,19 @@
 class FileDbConn
 {
     const FRAGMENT_IP = '192.168.10.';
-    const FRAGMENT_NAME_DB = 'samson_';
     const ERROR_SEARCH_PARAMETERS = 'Ошибка поиска параметров в файле ';
     const ERROR_EMPTY_QUERY = 'Пустой запрос';
     const MESSAGE_SUCCESS = 'Параметры подключения к БД изменены.<br><br>';
 
     private $arIPDefault = [
-        'dev' => '10',
-        'test' => '20',
-        'etalon' => '30',
+        'dev' => '192.168.10.10',
+        'test' => '192.168.10.20',
+        'etalon' => '192.168.10.30',
+    ];
+    private $arDBNameDefault = [
+        'dev' => 'samson_dev',
+        'test' => 'samson_test',
+        'etalon' => 'samson_test',
     ];
     private $arFiles = [
         'php_interface/dbconn',
@@ -66,9 +70,9 @@ class FileDbConn
      */
     protected function setParamConnect($queryKey, string $queryValue = ''): array
     {
-        if (isset($this->arIPDefault[$queryKey])) {
-            $dbHost = self::FRAGMENT_IP . $this->arIPDefault[$queryKey];
-            $dbName = self::FRAGMENT_NAME_DB . $queryKey;
+        if (isset($this->arIPDefault[$queryKey]) && isset($this->arDBNameDefault[$queryKey])) {
+            $dbHost = $this->arIPDefault[$queryKey];
+            $dbName = $this->arDBNameDefault[$queryKey];
         } elseif (is_int($queryKey) && preg_match('/^[\w\d]+$/', $queryValue)) {
             $dbHost = self::FRAGMENT_IP . $queryKey;
             $dbName = $queryValue;
@@ -99,7 +103,7 @@ class FileDbConn
      *
      * @return bool
      */
-    public function writeFile(string $contentFile, array $arParams): bool
+    protected function writeFile(string $contentFile, array $arParams): bool
     {
         if (strpos($this->fileCurrent, '.settings') !== false) {
             $patternHost = '/[\'\"]host[\'\"]\s*=>\s*[\'\"][\w\.\d]+[\'\"],/';
